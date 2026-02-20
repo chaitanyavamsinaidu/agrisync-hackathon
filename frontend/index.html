@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AgriSync – Farmer Smart App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#f2f6f3;
+}
+header{
+    background:#1b8f4c;
+    color:white;
+    text-align:center;
+    padding:15px;
+    font-size:20px;
+    font-weight:bold;
+}
+.container{
+    padding:15px;
+}
+.card{
+    background:white;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:10px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.1);
+}
+h2{
+    margin-top:0;
+    font-size:18px;
+}
+input, select{
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:14px;
+}
+button{
+    width:100%;
+    padding:14px;
+    background:#1b8f4c;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:bold;
+}
+button:hover{
+    background:#15753d;
+}
+.success-box{
+    background:#e8f7ee;
+    padding:10px;
+    border-radius:8px;
+    margin-top:10px;
+    font-size:14px;
+}
+.small{
+    font-size:13px;
+    color:gray;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+🌾 AgriSync – Farmer Smart App
+</header>
+
+<div class="container">
+
+<!-- Dashboard -->
+<div class="card">
+<h2>📊 Platform Dashboard</h2>
+<div id="dashboardStats">
+Loading dashboard...
+</div>
+</div>
+
+<!-- Register Farmer -->
+<div class="card">
+<h2>👨‍🌾 Register Farmer</h2>
+<input id="farmerName" placeholder="Your Name">
+<input id="farmerPhone" placeholder="Phone Number">
+<input id="farmerLocation" placeholder="Village / City">
+<button onclick="registerFarmer()">Register</button>
+<div id="farmerResult"></div>
+</div>
+
+<!-- Add Harvest -->
+<div class="card">
+<h2>🌾 Add Upcoming Harvest</h2>
+
+<select id="cropName">
+<option value="">Select Crop</option>
+<option>Paddy</option>
+<option>Tomato</option>
+<option>Onion</option>
+<option>Mango</option>
+<option>Banana</option>
+<option>Cotton</option>
+</select>
+
+<input type="number" id="quantity" placeholder="Quantity">
+
+<select id="unit">
+<option value="kg">Kilograms (kg)</option>
+<option value="quintal">Quintal</option>
+<option value="ton">Ton</option>
+</select>
+
+<label class="small">📅 When will your crop be ready?</label>
+<input type="date" id="harvestDate">
+
+<button onclick="addHarvest()">Add Harvest</button>
+<div id="harvestResult"></div>
+</div>
+
+<!-- Register Buyer -->
+<div class="card">
+<h2>🛒 Register Buyer</h2>
+<input id="buyerName" placeholder="Buyer Name">
+<input id="buyerPhone" placeholder="Phone">
+<input id="buyerLocation" placeholder="Market Location">
+<button onclick="registerBuyer()">Register Buyer</button>
+<div id="buyerResult"></div>
+</div>
+
+<!-- Add Demand -->
+<div class="card">
+<h2>📦 Create Demand</h2>
+
+<input type="number" id="buyerIdInput" placeholder="Buyer ID">
+
+<select id="demandCrop">
+<option value="">Select Crop</option>
+<option>Paddy</option>
+<option>Tomato</option>
+<option>Onion</option>
+<option>Mango</option>
+<option>Banana</option>
+<option>Cotton</option>
+</select>
+
+<input type="number" id="demandQuantity" placeholder="Required Quantity">
+
+<select id="demandUnit">
+<option value="kg">Kilograms (kg)</option>
+<option value="quintal">Quintal</option>
+<option value="ton">Ton</option>
+</select>
+
+<button onclick="createDemand()">Create Demand</button>
+<div id="demandResult"></div>
+</div>
+
+<!-- Smart Match -->
+<div class="card">
+<h2>🤖 Smart Match</h2>
+<input type="number" id="matchDemandId" placeholder="Demand ID">
+<button onclick="findMatch()">Find Best Match</button>
+<div id="matchResult"></div>
+</div>
+
+</div>
+
+<script>
+
+let storedFarmerId = null;
+
+/* ---------------- Dashboard ---------------- */
+async function loadDashboard(){
+const response = await fetch("http://127.0.0.1:8000/dashboard");
+const data = await response.json();
+
+document.getElementById("dashboardStats").innerHTML =
+`👨‍🌾 Total Farmers: <b>${data.total_farmers}</b><br>
+🌾 Total Harvests: <b>${data.total_harvests}</b><br>
+🛒 Total Buyers: <b>${data.total_buyers}</b><br>
+📦 Total Demands: <b>${data.total_demands}</b>`;
+}
+
+loadDashboard();
+
+/* ---------------- Register Farmer ---------------- */
+async function registerFarmer(){
+const response = await fetch("http://127.0.0.1:8000/register-farmer",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+name:document.getElementById("farmerName").value,
+phone:document.getElementById("farmerPhone").value,
+location:document.getElementById("farmerLocation").value
+})
+});
+const data = await response.json();
+storedFarmerId = data.farmer_id;
+
+document.getElementById("farmerResult").innerHTML=
+`<div class="success-box">
+✅ Registered! Farmer ID: <b>${data.farmer_id}</b>
+</div>`;
+
+loadDashboard();
+}
+
+/* ---------------- Add Harvest ---------------- */
+async function addHarvest(){
+
+if(!storedFarmerId){
+alert("Register farmer first.");
+return;
+}
+
+let qty=parseFloat(document.getElementById("quantity").value);
+const unit=document.getElementById("unit").value;
+
+if(unit==="quintal") qty*=100;
+if(unit==="ton") qty*=1000;
+
+const response = await fetch("http://127.0.0.1:8000/add-harvest",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+farmer_id:storedFarmerId,
+crop_name:document.getElementById("cropName").value,
+quantity:qty,
+expected_harvest_date:document.getElementById("harvestDate").value
+})
+});
+const data = await response.json();
+
+document.getElementById("harvestResult").innerHTML=
+`<div class="success-box">
+🌾 Harvest Added! <br>
+Score: <b>${data.harvest_score}</b><br>
+Days Remaining: <b>${data.days_remaining}</b>
+</div>`;
+
+loadDashboard();
+}
+
+/* ---------------- Register Buyer ---------------- */
+async function registerBuyer(){
+const response = await fetch("http://127.0.0.1:8000/register-buyer",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+name:document.getElementById("buyerName").value,
+phone:document.getElementById("buyerPhone").value,
+location:document.getElementById("buyerLocation").value
+})
+});
+const data = await response.json();
+
+document.getElementById("buyerResult").innerHTML=
+`<div class="success-box">
+🛒 Buyer ID: <b>${data.buyer_id}</b>
+</div>`;
+
+loadDashboard();
+}
+
+/* ---------------- Add Demand ---------------- */
+async function createDemand(){
+
+let qty=parseFloat(document.getElementById("demandQuantity").value);
+const unit=document.getElementById("demandUnit").value;
+
+if(unit==="quintal") qty*=100;
+if(unit==="ton") qty*=1000;
+
+const response = await fetch("http://127.0.0.1:8000/add-demand",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+buyer_id:parseInt(document.getElementById("buyerIdInput").value),
+crop_name:document.getElementById("demandCrop").value,
+quantity_required:qty
+})
+});
+const data = await response.json();
+
+document.getElementById("demandResult").innerHTML=
+`<div class="success-box">
+📦 Demand ID: <b>${data.demand_id}</b>
+</div>`;
+
+loadDashboard();
+}
+
+/* ---------------- Smart Match ---------------- */
+async function findMatch(){
+
+const demandId=document.getElementById("matchDemandId").value;
+
+const response = await fetch(`http://127.0.0.1:8000/match-demand/${demandId}`,{
+method:"POST"
+});
+
+const data = await response.json();
+
+if(data.message === "No matching harvest found ❌"){
+    document.getElementById("matchResult").innerHTML=
+    `<div class="success-box">
+    ❌ No matching harvest found.
+    </div>`;
+    return;
+}
+
+let aiMessage = "";
+let urgencyColor = "";
+
+if(data.days_remaining <= 3){
+    aiMessage = "🔥 Sell Immediately – High Urgency";
+    urgencyColor = "red";
+}
+else if(data.days_remaining <= 7){
+    aiMessage = "🟡 Monitor Market – Good Selling Window";
+    urgencyColor = "orange";
+}
+else{
+    aiMessage = "🟢 You Can Wait – Stable Period";
+    urgencyColor = "green";
+}
+
+document.getElementById("matchResult").innerHTML=
+`<div class="success-box">
+🤖 Match Found! <br><br>
+Farmer ID: <b>${data.farmer_id}</b><br>
+Harvest Score: <b>${data.harvest_score}</b><br>
+Suggested Price: <b>${data.suggested_price_per_kg}</b><br>
+Days Remaining: <b>${data.days_remaining}</b><br><br>
+<b style="color:${urgencyColor};">
+AI Recommendation: ${aiMessage}
+</b>
+</div>`;
+}
+
+</script>
+
+</body>
+</html>
