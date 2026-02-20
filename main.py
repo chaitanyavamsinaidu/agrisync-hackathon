@@ -1,3 +1,4 @@
+from fastapi.responses import FileResponse
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -223,3 +224,6 @@ def get_dashboard(db: Session = Depends(get_db)):
         "total_buyers": total_buyers,
         "total_demands": total_demands
     }
+@app.get("/")
+def serve_frontend():
+    return FileResponse("frontend/index.html")
