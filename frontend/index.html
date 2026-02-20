@@ -77,15 +77,11 @@ button:hover{
 
 <div class="container">
 
-<!-- Dashboard -->
 <div class="card">
 <h2>📊 Platform Dashboard</h2>
-<div id="dashboardStats">
-Loading dashboard...
-</div>
+<div id="dashboardStats">Loading dashboard...</div>
 </div>
 
-<!-- Register Farmer -->
 <div class="card">
 <h2>👨‍🌾 Register Farmer</h2>
 <input id="farmerName" placeholder="Your Name">
@@ -95,7 +91,6 @@ Loading dashboard...
 <div id="farmerResult"></div>
 </div>
 
-<!-- Add Harvest -->
 <div class="card">
 <h2>🌾 Add Upcoming Harvest</h2>
 
@@ -124,7 +119,6 @@ Loading dashboard...
 <div id="harvestResult"></div>
 </div>
 
-<!-- Register Buyer -->
 <div class="card">
 <h2>🛒 Register Buyer</h2>
 <input id="buyerName" placeholder="Buyer Name">
@@ -134,7 +128,6 @@ Loading dashboard...
 <div id="buyerResult"></div>
 </div>
 
-<!-- Add Demand -->
 <div class="card">
 <h2>📦 Create Demand</h2>
 
@@ -162,7 +155,6 @@ Loading dashboard...
 <div id="demandResult"></div>
 </div>
 
-<!-- Smart Match -->
 <div class="card">
 <h2>🤖 Smart Match</h2>
 <input type="number" id="matchDemandId" placeholder="Demand ID">
@@ -174,11 +166,13 @@ Loading dashboard...
 
 <script>
 
+const BASE_URL = "https://agrisync-hackathon.onrender.com";
+
 let storedFarmerId = null;
 
-/* ---------------- Dashboard ---------------- */
+/* Dashboard */
 async function loadDashboard(){
-const response = await fetch("http://127.0.0.1:8000/dashboard");
+const response = await fetch(`${BASE_URL}/dashboard`);
 const data = await response.json();
 
 document.getElementById("dashboardStats").innerHTML =
@@ -190,21 +184,21 @@ document.getElementById("dashboardStats").innerHTML =
 
 loadDashboard();
 
-/* ---------------- Register Farmer ---------------- */
+/* Register Farmer */
 async function registerFarmer(){
-const response = await fetch("http://127.0.0.1:8000/register-farmer",{
+const response = await fetch(`${BASE_URL}/register-farmer`,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-name:document.getElementById("farmerName").value,
-phone:document.getElementById("farmerPhone").value,
-location:document.getElementById("farmerLocation").value
+name:farmerName.value,
+phone:farmerPhone.value,
+location:farmerLocation.value
 })
 });
 const data = await response.json();
 storedFarmerId = data.farmer_id;
 
-document.getElementById("farmerResult").innerHTML=
+farmerResult.innerHTML=
 `<div class="success-box">
 ✅ Registered! Farmer ID: <b>${data.farmer_id}</b>
 </div>`;
@@ -212,7 +206,7 @@ document.getElementById("farmerResult").innerHTML=
 loadDashboard();
 }
 
-/* ---------------- Add Harvest ---------------- */
+/* Add Harvest */
 async function addHarvest(){
 
 if(!storedFarmerId){
@@ -220,25 +214,23 @@ alert("Register farmer first.");
 return;
 }
 
-let qty=parseFloat(document.getElementById("quantity").value);
-const unit=document.getElementById("unit").value;
+let qty=parseFloat(quantity.value);
+if(unit.value==="quintal") qty*=100;
+if(unit.value==="ton") qty*=1000;
 
-if(unit==="quintal") qty*=100;
-if(unit==="ton") qty*=1000;
-
-const response = await fetch("http://127.0.0.1:8000/add-harvest",{
+const response = await fetch(`${BASE_URL}/add-harvest`,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
 farmer_id:storedFarmerId,
-crop_name:document.getElementById("cropName").value,
+crop_name:cropName.value,
 quantity:qty,
-expected_harvest_date:document.getElementById("harvestDate").value
+expected_harvest_date:harvestDate.value
 })
 });
 const data = await response.json();
 
-document.getElementById("harvestResult").innerHTML=
+harvestResult.innerHTML=
 `<div class="success-box">
 🌾 Harvest Added! <br>
 Score: <b>${data.harvest_score}</b><br>
@@ -248,20 +240,20 @@ Days Remaining: <b>${data.days_remaining}</b>
 loadDashboard();
 }
 
-/* ---------------- Register Buyer ---------------- */
+/* Register Buyer */
 async function registerBuyer(){
-const response = await fetch("http://127.0.0.1:8000/register-buyer",{
+const response = await fetch(`${BASE_URL}/register-buyer`,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-name:document.getElementById("buyerName").value,
-phone:document.getElementById("buyerPhone").value,
-location:document.getElementById("buyerLocation").value
+name:buyerName.value,
+phone:buyerPhone.value,
+location:buyerLocation.value
 })
 });
 const data = await response.json();
 
-document.getElementById("buyerResult").innerHTML=
+buyerResult.innerHTML=
 `<div class="success-box">
 🛒 Buyer ID: <b>${data.buyer_id}</b>
 </div>`;
@@ -269,27 +261,25 @@ document.getElementById("buyerResult").innerHTML=
 loadDashboard();
 }
 
-/* ---------------- Add Demand ---------------- */
+/* Add Demand */
 async function createDemand(){
 
-let qty=parseFloat(document.getElementById("demandQuantity").value);
-const unit=document.getElementById("demandUnit").value;
+let qty=parseFloat(demandQuantity.value);
+if(demandUnit.value==="quintal") qty*=100;
+if(demandUnit.value==="ton") qty*=1000;
 
-if(unit==="quintal") qty*=100;
-if(unit==="ton") qty*=1000;
-
-const response = await fetch("http://127.0.0.1:8000/add-demand",{
+const response = await fetch(`${BASE_URL}/add-demand`,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-buyer_id:parseInt(document.getElementById("buyerIdInput").value),
-crop_name:document.getElementById("demandCrop").value,
+buyer_id:parseInt(buyerIdInput.value),
+crop_name:demandCrop.value,
 quantity_required:qty
 })
 });
 const data = await response.json();
 
-document.getElementById("demandResult").innerHTML=
+demandResult.innerHTML=
 `<div class="success-box">
 📦 Demand ID: <b>${data.demand_id}</b>
 </div>`;
@@ -297,42 +287,37 @@ document.getElementById("demandResult").innerHTML=
 loadDashboard();
 }
 
-/* ---------------- Smart Match ---------------- */
+/* Smart Match */
 async function findMatch(){
 
-const demandId=document.getElementById("matchDemandId").value;
-
-const response = await fetch(`http://127.0.0.1:8000/match-demand/${demandId}`,{
+const response = await fetch(`${BASE_URL}/match-demand/${matchDemandId.value}`,{
 method:"POST"
 });
 
 const data = await response.json();
 
 if(data.message === "No matching harvest found ❌"){
-    document.getElementById("matchResult").innerHTML=
-    `<div class="success-box">
-    ❌ No matching harvest found.
-    </div>`;
-    return;
+matchResult.innerHTML=
+`<div class="success-box">❌ No matching harvest found.</div>`;
+return;
 }
 
-let aiMessage = "";
-let urgencyColor = "";
+let aiMessage="";
+let urgencyColor="green";
 
-if(data.days_remaining <= 3){
-    aiMessage = "🔥 Sell Immediately – High Urgency";
-    urgencyColor = "red";
+if(data.days_remaining<=3){
+aiMessage="🔥 Sell Immediately – High Urgency";
+urgencyColor="red";
 }
-else if(data.days_remaining <= 7){
-    aiMessage = "🟡 Monitor Market – Good Selling Window";
-    urgencyColor = "orange";
+else if(data.days_remaining<=7){
+aiMessage="🟡 Monitor Market – Good Selling Window";
+urgencyColor="orange";
 }
 else{
-    aiMessage = "🟢 You Can Wait – Stable Period";
-    urgencyColor = "green";
+aiMessage="🟢 You Can Wait – Stable Period";
 }
 
-document.getElementById("matchResult").innerHTML=
+matchResult.innerHTML=
 `<div class="success-box">
 🤖 Match Found! <br><br>
 Farmer ID: <b>${data.farmer_id}</b><br>
