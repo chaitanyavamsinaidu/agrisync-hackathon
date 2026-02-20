@@ -6,74 +6,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:#f2f6f3;
-}
-header{
-    background:#1b8f4c;
-    color:white;
-    text-align:center;
-    padding:15px;
-    font-size:20px;
-    font-weight:bold;
-}
-.container{
-    padding:15px;
-}
-.card{
-    background:white;
-    padding:15px;
-    margin-bottom:15px;
-    border-radius:10px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.1);
-}
-h2{
-    margin-top:0;
-    font-size:18px;
-}
-input, select{
-    width:100%;
-    padding:12px;
-    margin-top:8px;
-    margin-bottom:10px;
-    border-radius:8px;
-    border:1px solid #ccc;
-    font-size:14px;
-}
-button{
-    width:100%;
-    padding:14px;
-    background:#1b8f4c;
-    color:white;
-    border:none;
-    border-radius:8px;
-    font-size:16px;
-    font-weight:bold;
-}
-button:hover{
-    background:#15753d;
-}
-.success-box{
-    background:#e8f7ee;
-    padding:10px;
-    border-radius:8px;
-    margin-top:10px;
-    font-size:14px;
-}
-.small{
-    font-size:13px;
-    color:gray;
-}
+body{margin:0;font-family:Arial;background:#f2f6f3;}
+header{background:#1b8f4c;color:white;text-align:center;padding:15px;font-size:20px;font-weight:bold;}
+.container{padding:15px;}
+.card{background:white;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+input,select{width:100%;padding:12px;margin-top:8px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;}
+button{width:100%;padding:14px;background:#1b8f4c;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;}
+button:hover{background:#15753d;}
+.success-box{background:#e8f7ee;padding:10px;border-radius:8px;margin-top:10px;}
+.small{font-size:13px;color:gray;}
 </style>
 </head>
 
 <body>
 
-<header>
-🌾 AgriSync – Farmer Smart App
-</header>
+<header>🌾 AgriSync – Farmer Smart App</header>
 
 <div class="container">
 
@@ -93,9 +40,7 @@ button:hover{
 
 <div class="card">
 <h2>🌾 Add Upcoming Harvest</h2>
-
 <select id="cropName">
-<option value="">Select Crop</option>
 <option>Paddy</option>
 <option>Tomato</option>
 <option>Onion</option>
@@ -103,18 +48,13 @@ button:hover{
 <option>Banana</option>
 <option>Cotton</option>
 </select>
-
 <input type="number" id="quantity" placeholder="Quantity">
-
 <select id="unit">
-<option value="kg">Kilograms (kg)</option>
-<option value="quintal">Quintal</option>
-<option value="ton">Ton</option>
+<option value="kg">kg</option>
+<option value="quintal">quintal</option>
+<option value="ton">ton</option>
 </select>
-
-<label class="small">📅 When will your crop be ready?</label>
 <input type="date" id="harvestDate">
-
 <button onclick="addHarvest()">Add Harvest</button>
 <div id="harvestResult"></div>
 </div>
@@ -130,11 +70,8 @@ button:hover{
 
 <div class="card">
 <h2>📦 Create Demand</h2>
-
 <input type="number" id="buyerIdInput" placeholder="Buyer ID">
-
 <select id="demandCrop">
-<option value="">Select Crop</option>
 <option>Paddy</option>
 <option>Tomato</option>
 <option>Onion</option>
@@ -142,15 +79,12 @@ button:hover{
 <option>Banana</option>
 <option>Cotton</option>
 </select>
-
 <input type="number" id="demandQuantity" placeholder="Required Quantity">
-
 <select id="demandUnit">
-<option value="kg">Kilograms (kg)</option>
-<option value="quintal">Quintal</option>
-<option value="ton">Ton</option>
+<option value="kg">kg</option>
+<option value="quintal">quintal</option>
+<option value="ton">ton</option>
 </select>
-
 <button onclick="createDemand()">Create Demand</button>
 <div id="demandResult"></div>
 </div>
@@ -166,71 +100,115 @@ button:hover{
 
 <script>
 
-const BASE_URL = "https://agrisync-hackathon.onrender.com";
+const BASE_URL="https://agrisync-hackathon.onrender.com";
+let storedFarmerId=null;
 
-let storedFarmerId = null;
-
-/* Dashboard */
 async function loadDashboard(){
-const response = await fetch(`${BASE_URL}/dashboard`);
-const data = await response.json();
-
-dashboardStats.innerHTML =
-`👨‍🌾 Total Farmers: <b>${data.total_farmers}</b><br>
-🌾 Total Harvests: <b>${data.total_harvests}</b><br>
-🛒 Total Buyers: <b>${data.total_buyers}</b><br>
-📦 Total Demands: <b>${data.total_demands}</b>`;
+const res=await fetch(`${BASE_URL}/dashboard`);
+const data=await res.json();
+dashboardStats.innerHTML=
+`👨‍🌾 Farmers: <b>${data.total_farmers}</b><br>
+🌾 Harvests: <b>${data.total_harvests}</b><br>
+🛒 Buyers: <b>${data.total_buyers}</b><br>
+📦 Demands: <b>${data.total_demands}</b>`;
 }
 loadDashboard();
 
-/* Smart Match */
-async function findMatch(){
-
-const response = await fetch(`${BASE_URL}/match-demand/${matchDemandId.value}`,{
-method:"POST"
+async function registerFarmer(){
+const res=await fetch(`${BASE_URL}/register-farmer`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+name:farmerName.value,
+phone:farmerPhone.value,
+location:farmerLocation.value
+})
 });
+const data=await res.json();
+storedFarmerId=data.farmer_id;
+farmerResult.innerHTML=`<div class="success-box">Farmer ID: ${data.farmer_id}</div>`;
+loadDashboard();
+}
 
-const data = await response.json();
+async function addHarvest(){
+if(!storedFarmerId){alert("Register farmer first");return;}
+let qty=parseFloat(quantity.value);
+if(unit.value==="quintal") qty*=100;
+if(unit.value==="ton") qty*=1000;
 
-if(data.message === "No matching harvest found ❌"){
-matchResult.innerHTML =
-`<div class="success-box">❌ No matching harvest found.</div>`;
+const res=await fetch(`${BASE_URL}/add-harvest`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+farmer_id:storedFarmerId,
+crop_name:cropName.value,
+quantity:qty,
+expected_harvest_date:harvestDate.value
+})
+});
+const data=await res.json();
+harvestResult.innerHTML=
+`<div class="success-box">
+Score: ${data.harvest_score}<br>
+Days Remaining: ${data.days_remaining}
+</div>`;
+loadDashboard();
+}
+
+async function registerBuyer(){
+const res=await fetch(`${BASE_URL}/register-buyer`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+name:buyerName.value,
+phone:buyerPhone.value,
+location:buyerLocation.value
+})
+});
+const data=await res.json();
+buyerResult.innerHTML=`<div class="success-box">Buyer ID: ${data.buyer_id}</div>`;
+loadDashboard();
+}
+
+async function createDemand(){
+let qty=parseFloat(demandQuantity.value);
+if(demandUnit.value==="quintal") qty*=100;
+if(demandUnit.value==="ton") qty*=1000;
+
+const res=await fetch(`${BASE_URL}/add-demand`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+buyer_id:parseInt(buyerIdInput.value),
+crop_name:demandCrop.value,
+quantity_required:qty
+})
+});
+const data=await res.json();
+demandResult.innerHTML=`<div class="success-box">Demand ID: ${data.demand_id}</div>`;
+loadDashboard();
+}
+
+async function findMatch(){
+const res=await fetch(`${BASE_URL}/match-demand/${matchDemandId.value}`,{method:"POST"});
+const data=await res.json();
+
+if(data.message==="No matching harvest found ❌"){
+matchResult.innerHTML=`<div class="success-box">No match found</div>`;
 return;
 }
 
-let aiMessage="";
-let urgencyColor="green";
-
-if(data.days_remaining<=3){
-aiMessage="🔥 Sell Immediately – High Urgency";
-urgencyColor="red";
-}
-else if(data.days_remaining<=7){
-aiMessage="🟡 Monitor Market – Good Selling Window";
-urgencyColor="orange";
-}
-else{
-aiMessage="🟢 You Can Wait – Stable Period";
-}
-
-matchResult.innerHTML =
+matchResult.innerHTML=
 `<div class="success-box">
-🤖 Match Found! <br><br>
-👨‍🌾 Farmer: <b>${data.farmer_name}</b><br>
-📍 Location: <b>${data.farmer_location}</b><br>
-📞 Phone: <b>${data.farmer_phone}</b><br>
-🌾 Crop: <b>${data.crop_name}</b><br>
-📦 Available: <b>${data.available_quantity} kg</b><br>
-⭐ Harvest Score: <b>${data.harvest_score}</b><br>
-💰 Suggested Price: <b>₹ ${data.suggested_price_per_kg} per kg</b><br>
-⏳ Days Remaining: <b>${data.days_remaining}</b><br><br>
-
-<b style="color:${urgencyColor};">
-AI Recommendation: ${aiMessage}
-</b>
+Farmer: ${data.farmer_name}<br>
+Phone: ${data.farmer_phone}<br>
+Location: ${data.farmer_location}<br>
+Crop: ${data.crop_name}<br>
+Available: ${data.available_quantity} kg<br>
+Price: ₹ ${data.suggested_price_per_kg} per kg<br>
+Days Remaining: ${data.days_remaining}
 </div>`;
 }
-
 </script>
 
 </body>
