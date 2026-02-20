@@ -40,9 +40,12 @@ def get_db():
     finally:
         db.close()
 
+# ---------------------------
+# Root Route (Opens Website Directly)
+# ---------------------------
 @app.get("/")
-def home():
-    return {"message": "AgriSync Backend is Running 🚜🔥"}
+def serve_frontend():
+    return FileResponse("frontend/index.html")
 
 # ---------------------------
 # Register Farmer
@@ -154,7 +157,7 @@ def add_demand(demand: schemas.DemandCreate, db: Session = Depends(get_db)):
     }
 
 # ---------------------------
-# Smart Match + Pricing
+# Smart Match + Pricing (Upgraded)
 # ---------------------------
 @app.post("/match-demand/{demand_id}")
 def match_demand(demand_id: int, db: Session = Depends(get_db)):
@@ -180,6 +183,12 @@ def match_demand(demand_id: int, db: Session = Depends(get_db)):
         reverse=True
     )[0]
 
+    # Fetch farmer details
+    farmer = db.query(models.Farmer).filter(
+        models.Farmer.id == best_harvest.farmer_id
+    ).first()
+
+    # Smart pricing logic (₹ per kg)
     base_price = 20
     score_multiplier = best_harvest.harvest_score / 100
 
@@ -200,30 +209,25 @@ def match_demand(demand_id: int, db: Session = Depends(get_db)):
 
     return {
         "message": "Best match found ✅",
-        "farmer_id": best_harvest.farmer_id,
-        "harvest_id": best_harvest.id,
-        "harvest_score": best_harvest.harvest_score,
+        "farmer_name": farmer.name,
+        "farmer_phone": farmer.phone,
+        "farmer_location": farmer.location,
+        "crop_name": best_harvest.crop_name,
         "available_quantity": best_harvest.quantity,
+        "harvest_score": best_harvest.harvest_score,
         "suggested_price_per_kg": suggested_price,
         "days_remaining": days_remaining
     }
+
 # ---------------------------
 # Dashboard Stats
 # ---------------------------
 @app.get("/dashboard")
 def get_dashboard(db: Session = Depends(get_db)):
 
-    total_farmers = db.query(models.Farmer).count()
-    total_harvests = db.query(models.Harvest).count()
-    total_buyers = db.query(models.Buyer).count()
-    total_demands = db.query(models.Demand).count()
-
     return {
-        "total_farmers": total_farmers,
-        "total_harvests": total_harvests,
-        "total_buyers": total_buyers,
-        "total_demands": total_demands
+        "total_farmers": db.query(models.Farmer).count(),
+        "total_harvests": db.query(models.Harvest).count(),
+        "total_buyers": db.query(models.Buyer).count(),
+        "total_demands": db.query(models.Demand).count()
     }
-@app.get("/")
-def serve_frontend():
-    return FileResponse("frontend/index.html")

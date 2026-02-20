@@ -175,117 +175,13 @@ async function loadDashboard(){
 const response = await fetch(`${BASE_URL}/dashboard`);
 const data = await response.json();
 
-document.getElementById("dashboardStats").innerHTML =
+dashboardStats.innerHTML =
 `👨‍🌾 Total Farmers: <b>${data.total_farmers}</b><br>
 🌾 Total Harvests: <b>${data.total_harvests}</b><br>
 🛒 Total Buyers: <b>${data.total_buyers}</b><br>
 📦 Total Demands: <b>${data.total_demands}</b>`;
 }
-
 loadDashboard();
-
-/* Register Farmer */
-async function registerFarmer(){
-const response = await fetch(`${BASE_URL}/register-farmer`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-name:farmerName.value,
-phone:farmerPhone.value,
-location:farmerLocation.value
-})
-});
-const data = await response.json();
-storedFarmerId = data.farmer_id;
-
-farmerResult.innerHTML=
-`<div class="success-box">
-✅ Registered! Farmer ID: <b>${data.farmer_id}</b>
-</div>`;
-
-loadDashboard();
-}
-
-/* Add Harvest */
-async function addHarvest(){
-
-if(!storedFarmerId){
-alert("Register farmer first.");
-return;
-}
-
-let qty=parseFloat(quantity.value);
-if(unit.value==="quintal") qty*=100;
-if(unit.value==="ton") qty*=1000;
-
-const response = await fetch(`${BASE_URL}/add-harvest`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-farmer_id:storedFarmerId,
-crop_name:cropName.value,
-quantity:qty,
-expected_harvest_date:harvestDate.value
-})
-});
-const data = await response.json();
-
-harvestResult.innerHTML=
-`<div class="success-box">
-🌾 Harvest Added! <br>
-Score: <b>${data.harvest_score}</b><br>
-Days Remaining: <b>${data.days_remaining}</b>
-</div>`;
-
-loadDashboard();
-}
-
-/* Register Buyer */
-async function registerBuyer(){
-const response = await fetch(`${BASE_URL}/register-buyer`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-name:buyerName.value,
-phone:buyerPhone.value,
-location:buyerLocation.value
-})
-});
-const data = await response.json();
-
-buyerResult.innerHTML=
-`<div class="success-box">
-🛒 Buyer ID: <b>${data.buyer_id}</b>
-</div>`;
-
-loadDashboard();
-}
-
-/* Add Demand */
-async function createDemand(){
-
-let qty=parseFloat(demandQuantity.value);
-if(demandUnit.value==="quintal") qty*=100;
-if(demandUnit.value==="ton") qty*=1000;
-
-const response = await fetch(`${BASE_URL}/add-demand`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-buyer_id:parseInt(buyerIdInput.value),
-crop_name:demandCrop.value,
-quantity_required:qty
-})
-});
-const data = await response.json();
-
-demandResult.innerHTML=
-`<div class="success-box">
-📦 Demand ID: <b>${data.demand_id}</b>
-</div>`;
-
-loadDashboard();
-}
 
 /* Smart Match */
 async function findMatch(){
@@ -297,7 +193,7 @@ method:"POST"
 const data = await response.json();
 
 if(data.message === "No matching harvest found ❌"){
-matchResult.innerHTML=
+matchResult.innerHTML =
 `<div class="success-box">❌ No matching harvest found.</div>`;
 return;
 }
@@ -317,13 +213,18 @@ else{
 aiMessage="🟢 You Can Wait – Stable Period";
 }
 
-matchResult.innerHTML=
+matchResult.innerHTML =
 `<div class="success-box">
 🤖 Match Found! <br><br>
-Farmer ID: <b>${data.farmer_id}</b><br>
-Harvest Score: <b>${data.harvest_score}</b><br>
-Suggested Price: <b>${data.suggested_price_per_kg}</b><br>
-Days Remaining: <b>${data.days_remaining}</b><br><br>
+👨‍🌾 Farmer: <b>${data.farmer_name}</b><br>
+📍 Location: <b>${data.farmer_location}</b><br>
+📞 Phone: <b>${data.farmer_phone}</b><br>
+🌾 Crop: <b>${data.crop_name}</b><br>
+📦 Available: <b>${data.available_quantity} kg</b><br>
+⭐ Harvest Score: <b>${data.harvest_score}</b><br>
+💰 Suggested Price: <b>₹ ${data.suggested_price_per_kg} per kg</b><br>
+⏳ Days Remaining: <b>${data.days_remaining}</b><br><br>
+
 <b style="color:${urgencyColor};">
 AI Recommendation: ${aiMessage}
 </b>
